@@ -1,46 +1,66 @@
 // src/pages/login/Login.jsx
 import { useState } from 'react';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Íconos de ojo
-import logoEmpresa from '../../assets/icsiLogo.png'; // Ajusta la ruta de tu logo
+import { useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import useAuth from '../../hooks/useAuth';
+import logoEmpresa from '../../assets/icsiLogo.png';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetMessage, setResetMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  
+  const { login, loading, error } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
     
-    // Aquí conectarás con Firebase
-    setTimeout(() => {
-      setLoading(false);
-      // window.location.href = '/dashboard';
-    }, 1000);
+    console.log('=== FORMULARIO ENVIADO ===');
+    console.log('Email ingresado:', email);
+    console.log('Password ingresada:', password ? '***' + password.length + ' caracteres' : 'vacía');
+    
+    if (!email || !password) {
+      console.log('❌ Campos vacíos');
+      return;
+    }
+    
+    console.log('🚀 Llamando a función login...');
+    
+    try {
+      const success = await login(email, password);
+      console.log('📤 Resultado de login:', success);
+      
+      if (success) {
+        console.log('✅ Login exitoso, redirigiendo a /dashboard');
+        navigate('/dashboard');
+      } else {
+        console.log('❌ Login fallido');
+      }
+    } catch (err) {
+      console.error('❌ Error inesperado:', err);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-icsi-background p-4">
       <div className="card w-full max-w-md">
-        
         {/* Header con Logo */}
         <div className="text-center pt-8 pb-6 px-8">
-          {/* Logo de la compañía */}
           <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
             <img 
               src={logoEmpresa} 
               alt="Logo ICSI" 
               className="w-full h-full object-contain"
+              onError={(e) => console.log('❌ Error cargando logo:', e)}
+              onLoad={() => console.log('✅ Logo cargado correctamente')}
             />
           </div>
           <h1 className="text-2xl font-bold text-icsi-titleform mb-1">
-            Siemens Inventario
+            Sistema de Inventarios
           </h1>
           <p className="text-sm text-icsi-text">Panel de Administración</p>
         </div>
@@ -57,7 +77,10 @@ const Login = () => {
                   type="email"
                   className="input"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    console.log('Email cambiado:', e.target.value);
+                    setEmail(e.target.value);
+                  }}
                   placeholder="admin@icsi.com.mx"
                   required
                   autoFocus
@@ -73,7 +96,10 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     className="input pr-10"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      console.log('Password cambiada:', e.target.value ? '***' + e.target.value.length + ' caracteres' : 'vacía');
+                      setPassword(e.target.value);
+                    }}
                     placeholder="••••••••"
                     required
                   />
@@ -81,7 +107,6 @@ const Login = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-icsi-textLight hover:text-icsi-primary transition-colors"
-                    tabIndex="-1"
                   >
                     {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                   </button>
@@ -118,14 +143,12 @@ const Login = () => {
                     Iniciando sesión...
                   </>
                 ) : (
-                  <>
-                    <span>→</span>
-                    Iniciar Sesión
-                  </>
+                  "Iniciar Sesión"
                 )}
               </button>
             </form>
           ) : (
+            // ... resto del formulario de recuperación
             <form onSubmit={(e) => {
               e.preventDefault();
               setResetMessage('✅ Correo de recuperación enviado');
@@ -184,7 +207,7 @@ const Login = () => {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-icsi-border text-center">
             <p className="text-xs text-icsi-text">
-              © 2026 ICSI COMERCIAL
+              © 2024 ICSI - Sistema de Gestión de Inventarios
             </p>
             <p className="text-xs text-icsi-textLight mt-1">
               Solo personal autorizado
