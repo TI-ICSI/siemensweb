@@ -2,28 +2,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuth from './hooks/useAuth';
 import Login from './pages/login/Login';
-//import AdminDashboard from './pages/dashboard/AdminDashboard'; // Lo haremos después
+import Dashboard from './pages/dashboard/Dashboard';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F2F2F2'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid #D91A2A',
-          borderTopColor: 'transparent',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite'
-        }} />
+      <div className="min-h-screen flex items-center justify-center bg-icsi-background">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-icsi-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-icsi-text">Cargando...</p>
+        </div>
       </div>
     );
   }
@@ -35,10 +25,10 @@ function App() {
           path="/login" 
           element={!user ? <Login /> : <Navigate to="/dashboard" />} 
         />
-        {/*<Route 
+        <Route 
           path="/dashboard" 
-          element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
-        />*/}
+          element={user && isAdmin ? <Dashboard /> : <Navigate to="/login" />} 
+        />
         <Route 
           path="/" 
           element={<Navigate to={user ? "/dashboard" : "/login"} />} 
