@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuth from './hooks/useAuth';
 import Login from './pages/login/Login';
 import Dashboard from './pages/dashboard/Dashboard';
+import Inventarios from './pages/inventarios/Inventarios';
 
 function App() {
   const { user, isAdmin, loading } = useAuth();
@@ -15,6 +16,17 @@ function App() {
           <p className="text-icsi-text">Cargando...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
     );
   }
 
@@ -32,6 +44,10 @@ function App() {
         <Route 
           path="/" 
           element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+        />
+        <Route 
+          path="/inventarios"
+          element={<Inventarios />} 
         />
       </Routes>
     </BrowserRouter>
