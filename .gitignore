@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables de entorno (¡CRÍTICO! No subir credenciales)
+.env
+.env.local
+.env.production
+
+# Archivos de Firebase (si los tienes localmente)
+.firebase/
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Firebase Functions (si las tienes localmente)
+functions/node_modules/
+functions/.runtimeconfig.json
