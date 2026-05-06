@@ -43,4 +43,12 @@
            font-semibold py-2 px-4 rounded-icsi transition-all duration-200
            hover:bg-icsi-background;
   }
+  .btn-home {
+  transition: all 0.2s ease;
+}
+
+.btn-home:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
 }
