@@ -4,6 +4,7 @@ import useAuth from './hooks/useAuth';
 import Login from './pages/login/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import Inventarios from './pages/inventarios/Inventarios';
+import InventarioDetalle from './pages/inventarios/InventarioDetalle';
 
 function App() {
   const { user, isAdmin, loading } = useAuth();
@@ -48,6 +49,10 @@ function App() {
         <Route 
           path="/inventarios"
           element={<Inventarios />} 
+        />
+        <Route 
+          path="/inventario/:id" 
+          element={<InventarioDetalle />} 
         />
       </Routes>
     </BrowserRouter>
