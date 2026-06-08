@@ -5,6 +5,8 @@ import Login from './pages/login/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import Inventarios from './pages/inventarios/Inventarios';
 import InventarioDetalle from './pages/inventarios/InventarioDetalle';
+import Reportes from './pages/reportes/Reportes';
+
 
 function App() {
   const { user, isAdmin, loading } = useAuth();
@@ -54,6 +56,11 @@ function App() {
           path="/inventario/:id" 
           element={<InventarioDetalle />} 
         />
+        <Route 
+          path="/reportes" 
+          element={<Reportes />} 
+        />
+
       </Routes>
     </BrowserRouter>
   );
