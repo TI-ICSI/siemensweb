@@ -2,44 +2,68 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
+// Opciones para los selects
 const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const estadosMexico = [
-  'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua',
-  'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero',
-  'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla',
-  'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas',
-  'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
+
+// Opciones para Inmueble (antes localidad)
+const inmuebles = [
+  "Balvanera",
+  "Dos Patios",
+  "Galerias",
+  "ITESA",
+  "Santa Catarina",
+  "Vallejo"
 ];
 
-const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => {
-  // Inicializar el estado directamente con los valores de inventory o valores por defecto
-  const [formData, setFormData] = useState(() => {
-    if (inventory) {
-      return {
-        anio: inventory.anio || new Date().getFullYear(),
-        mes: inventory.mes || '',
-        localidad: inventory.localidad || '',
-        estado: inventory.estado || '',
-        ubicacion: inventory.ubicacion || '',
-        status: inventory.status || 'activo'
-      };
-    }
-    return {
-      anio: new Date().getFullYear(),
-      mes: '',
-      localidad: '',
-      estado: '',
-      ubicacion: '',
-      status: 'activo'
-    };
-  });
+// Opciones para Estado
+const estados = [
+  "Chihuahua",
+  "Ciudad de México",
+  "Jalisco",
+  "Querétaro",
+  "Nuevo León"
+];
 
-  // Actualizar el formulario cuando cambia el inventory (sin useEffect)
-  // Usamos una key en el componente padre para forzar el re-render
+// Función para obtener el estado inicial basado en el inventario
+const getInitialFormData = (inventory) => {
+  if (inventory) {
+    return {
+      anio: inventory.anio || new Date().getFullYear(),
+      mes: inventory.mes || '',
+      inmueble: inventory.localidad || '',
+      estado: inventory.estado || '',
+      ubicacion: inventory.ubicacion || '',
+      status: inventory.status || 'activo'
+    };
+  }
+  return {
+    anio: new Date().getFullYear(),
+    mes: '',
+    inmueble: '',
+    estado: '',
+    ubicacion: '',
+    status: 'activo'
+  };
+};
+
+const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => {
+  const [formData, setFormData] = useState(() => getInitialFormData(inventory));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSave(formData);
+    
+    // Construir el objeto solo con los campos que tienen valor
+    const datosParaGuardar = {};
+    
+    // Solo incluir campos que tienen valor (no vacíos)
+    if (formData.anio) datosParaGuardar.anio = formData.anio;
+    if (formData.mes) datosParaGuardar.mes = formData.mes;
+    if (formData.inmueble) datosParaGuardar.localidad = formData.inmueble;
+    if (formData.estado) datosParaGuardar.estado = formData.estado;
+    if (formData.ubicacion !== undefined) datosParaGuardar.ubicacion = formData.ubicacion;
+    if (formData.status) datosParaGuardar.status = formData.status;
+    
+    await onSave(datosParaGuardar);
   };
 
   if (!isOpen) return null;
@@ -67,85 +91,81 @@ const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
               {/* Año */}
               <div>
                 <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Año *
+                  Año {!inventory && '*'}
                 </label>
                 <input
                   type="number"
                   value={formData.anio}
                   onChange={(e) => setFormData({...formData, anio: parseInt(e.target.value)})}
                   className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
+                  placeholder={inventory ? "Opcional" : "Ej: 2024"}
+                  required={!inventory}
                   min="2020"
                   max="2030"
                 />
+                {inventory && (
+                  <p className="text-xs text-icsi-textLight mt-1">
+                    Dejar vacío para mantener el valor actual
+                  </p>
+                )}
               </div>
 
               {/* Mes */}
               <div>
                 <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Mes *
+                  Mes {!inventory && '*'}
                 </label>
                 <select
                   value={formData.mes}
                   onChange={(e) => setFormData({...formData, mes: e.target.value})}
                   className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
+                  required={!inventory}
                 >
-                  <option value="">Seleccionar mes</option>
+                  <option value="">{inventory ? '-- Mantener actual --' : 'Seleccionar mes'}</option>
                   {meses.map(mes => (
                     <option key={mes} value={mes}>{mes}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Localidad */}
+              {/* Inmueble */}
               <div>
                 <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Localidad *
+                  Inmueble {!inventory && '*'}
                 </label>
-                <input
-                  type="text"
-                  value={formData.localidad}
-                  onChange={(e) => setFormData({...formData, localidad: e.target.value})}
+                <select
+                  value={formData.inmueble}
+                  onChange={(e) => setFormData({...formData, inmueble: e.target.value})}
                   className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  placeholder="Ej: Santa Catarina"
-                  required
-                />
+                  required={!inventory}
+                >
+                  <option value="">{inventory ? '-- Mantener actual --' : 'Seleccionar inmueble'}</option>
+                  {inmuebles.map(inmueble => (
+                    <option key={inmueble} value={inmueble}>{inmueble}</option>
+                  ))}
+                </select>
               </div>
 
-              {/* Estado de la república */}
+              {/* Estado */}
               <div>
                 <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Estado *
+                  Estado {!inventory && '*'}
                 </label>
                 <select
                   value={formData.estado}
                   onChange={(e) => setFormData({...formData, estado: e.target.value})}
                   className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
+                  required={!inventory}
                 >
-                  <option value="">Seleccionar estado</option>
-                  {estadosMexico.map(estado => (
+                  <option value="">{inventory ? '-- Mantener actual --' : 'Seleccionar estado'}</option>
+                  {estados.map(estado => (
                     <option key={estado} value={estado}>{estado}</option>
                   ))}
                 </select>
-              </div>
-
-              {/* Ubicación específica */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Ubicación específica
-                </label>
-                <input
-                  type="text"
-                  value={formData.ubicacion}
-                  onChange={(e) => setFormData({...formData, ubicacion: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  placeholder="Ej: Planta baja, bodega norte, etc."
-                />
               </div>
 
               {/* Estado del inventario */}
@@ -188,7 +208,7 @@ const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => 
                     Guardando...
                   </>
                 ) : (
-                  inventory ? 'Actualizar' : 'Crear Inventario'
+                  inventory ? 'Actualizar Inventario' : 'Crear Inventario'
                 )}
               </button>
             </div>

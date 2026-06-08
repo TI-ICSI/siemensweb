@@ -40,7 +40,7 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
                 Período
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Localidad
+                Inmueble
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Estado
