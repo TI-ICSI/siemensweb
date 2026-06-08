@@ -1,17 +1,24 @@
 // src/pages/dashboard/components/RecentInventoryTable.jsx
-import { FaSearch, FaEye } from 'react-icons/fa';
+import { FaSearch, FaEye, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const RecentInventoryTable = ({ inventories, onViewDetails }) => {
-  // Función para obtener el color del estado
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completado':
-        return 'bg-green-100 text-green-800';
-      case 'en_progreso':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  // Configuración de colores para el estado (igual que en InventoryTable)
+  const getStatusConfig = (status) => {
+    const statusConfig = {
+      activo: { bg: 'bg-green-100', text: 'text-green-800', icon: FaCheckCircle, label: 'Activo' },
+      completado: { bg: 'bg-blue-100', text: 'text-blue-800', icon: FaCheckCircle, label: 'Completado' },
+      en_progreso: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: FaClock, label: 'En Progreso' }
+    };
+    
+    const config = statusConfig[status?.toLowerCase()] || statusConfig.activo;
+    const Icon = config.icon;
+    
+    return {
+      bg: config.bg,
+      text: config.text,
+      icon: <Icon size={12} />,
+      label: config.label
+    };
   };
 
   return (
@@ -40,7 +47,7 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
                 Período
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Inmueble
+                Localidad
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Estado
@@ -52,7 +59,7 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
                 Fecha
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Estado
+                Estatus
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Acciones
@@ -60,39 +67,43 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-icsi-border">
-            {inventories.map((inv) => (
-              <tr key={inv.id} className="hover:bg-icsi-background/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-icsi-titleform">
-                  {inv.anio} - {inv.mes}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
-                  {inv.localidad}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
-                  {inv.estado}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-icsi-primary">
-                  {inv.totalEquipos}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
-                  {new Date(inv.createdAt?.toDate()).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(inv.status || 'completado')}`}>
-                    {inv.status || 'Completado'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <button
-                    onClick={() => onViewDetails(inv.id)}
-                    className="text-icsi-primary hover:text-icsi-hover transition-colors flex items-center gap-1"
-                  >
-                    <FaEye size={14} />
-                    Ver detalles
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {inventories.map((inv) => {
+              const statusConfig = getStatusConfig(inv.status);
+              return (
+                <tr key={inv.id} className="hover:bg-icsi-background/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-icsi-titleform">
+                    {inv.anio} - {inv.mes}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
+                    {inv.localidad}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
+                    {inv.estado}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-icsi-primary">
+                    {inv.totalEquipos}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-icsi-text">
+                    {new Date(inv.createdAt?.toDate()).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
+                      {statusConfig.icon}
+                      {statusConfig.label}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <button
+                      onClick={() => onViewDetails(inv.id)}
+                      className="text-icsi-primary hover:text-icsi-hover transition-colors flex items-center gap-1"
+                    >
+                      <FaEye size={14} />
+                      Ver detalles
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
