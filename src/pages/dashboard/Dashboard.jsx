@@ -7,7 +7,8 @@ import useDashboardData from './hooks/useDashboardData';
 import { 
   FaBoxes, 
   FaCalendarAlt, 
-  FaSpinner 
+  FaSpinner,
+ 
 } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -82,6 +83,22 @@ const Dashboard = () => {
               Consulta y gestiona todos los inventarios
             </p>
           </button>
+
+          <button
+            onClick={() => navigate('/reportes')}
+            className="bg-white border border-icsi-border rounded-icsi-lg p-6 text-center hover:shadow-icsi transition-all group"
+          >
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
+              📊
+            </div>
+            <h3 className="font-semibold text-icsi-titleform mb-1">
+              Generar Reporte
+            </h3>
+            <p className="text-sm text-icsi-text">
+               Puedes juntar la información de inventarios
+            </p>
+          </button>
+
         </div>
 
         {/* Tabla de inventarios recientes */}
