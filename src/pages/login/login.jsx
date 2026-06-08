@@ -207,7 +207,7 @@ const Login = () => {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-icsi-border text-center">
             <p className="text-xs text-icsi-text">
-              © 2024 ICSI - Sistema de Gestión de Inventarios
+              © 2026 ICSI Comercial - Sistema de Gestión de Inventarios
             </p>
             <p className="text-xs text-icsi-textLight mt-1">
               Solo personal autorizado
