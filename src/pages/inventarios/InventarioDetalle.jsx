@@ -42,14 +42,18 @@ const InventarioDetalle = () => {
   const [exportError, setExportError] = useState('');
   const [exportDownloadUrl, setExportDownloadUrl] = useState('');
   const [exportFileName, setExportFileName] = useState('');
+  const [modalKey, setModalKey] = useState(0);
+
 
   const handleCreate = () => {
     setSelectedEquipo(null);
+    setModalKey(prev => prev + 1); // Forzar reset del formulario
     setShowFormModal(true);
   };
 
   const handleEdit = (equipo) => {
     setSelectedEquipo(equipo);
+    setModalKey(prev => prev + 1); // Forzar reset del formulario
     setShowFormModal(true);
   };
 
@@ -207,6 +211,7 @@ const InventarioDetalle = () => {
 
         {/* Modales */}
         <EquipoFormModal
+          key={modalKey}  // ← IMPORTANTE: agrega esta línea
           isOpen={showFormModal}
           onClose={() => {
             setShowFormModal(false);

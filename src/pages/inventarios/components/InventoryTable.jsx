@@ -51,7 +51,7 @@ const InventoryTable = ({ inventories, onViewDetails, onEdit, onDelete, loading 
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Inmueble
               </th>
-              <th className=                       "px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Estado
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">

@@ -30,14 +30,18 @@ const Inventarios = () => {
   const [selectedInventory, setSelectedInventory] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
+
 
   const handleCreate = () => {
     setSelectedInventory(null);
+    setModalKey(prev => prev + 1);
     setShowFormModal(true);
   };
 
   const handleEdit = (inventory) => {
     setSelectedInventory(inventory);
+    setModalKey(prev => prev + 1);
     setShowFormModal(true);
   };
 
@@ -130,6 +134,7 @@ const handleResetFilters = () => {
 
         {/* Modales */}
         <InventoryFormModal
+          key={modalKey}
           isOpen={showFormModal}
           onClose={() => {
             setShowFormModal(false);

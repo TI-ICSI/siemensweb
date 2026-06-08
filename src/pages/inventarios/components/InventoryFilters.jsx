@@ -66,14 +66,14 @@ const InventoryFilters = ({ filters, setFilters, onReset, aniosDisponibles }) =>
         {/* Filtro por localidad */}
         <div>
           <label className="block text-sm font-medium text-icsi-titleform mb-2">
-            Localidad
+            Inmueble
           </label>
           <input
             type="text"
             name="localidad"
             value={filters.localidad}
             onChange={handleChange}
-            placeholder="Buscar por localidad..."
+            placeholder="Buscar por inmueble..."
             className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
           />
         </div>
