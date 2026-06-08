@@ -26,8 +26,6 @@ const InventarioDetalle = () => {
     createEquipo,
     updateEquipo,
     deleteEquipo,
-    getUniqueTipos,
-    getUniqueEstadosFisicos
   } = useInventarioDetalle();
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -39,8 +37,7 @@ const InventarioDetalle = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   
-  // Estados para exportación
-  const [exportStatus, setExportStatus] = useState('idle'); // idle, loading, success, error
+  const [exportStatus, setExportStatus] = useState('idle');
   const [exportProgress, setExportProgress] = useState(0);
   const [exportError, setExportError] = useState('');
   const [exportDownloadUrl, setExportDownloadUrl] = useState('');
@@ -76,7 +73,6 @@ const InventarioDetalle = () => {
     setExportProgress(0);
     setShowExportModal(true);
 
-    // Simular progreso mientras se procesa
     const interval = setInterval(() => {
       setExportProgress(prev => Math.min(prev + 10, 90));
     }, 500);
@@ -192,12 +188,10 @@ const InventarioDetalle = () => {
           </div>
         </div>
 
-        {/* Filtros */}
+        {/* ✅ Filtros - AHORA SIN tipos y estadosFisicos */}
         <EquipoFilters
           filters={filters}
           setFilters={setFilters}
-          tipos={getUniqueTipos()}
-          estadosFisicos={getUniqueEstadosFisicos()}
           onReset={resetFilters}
         />
 

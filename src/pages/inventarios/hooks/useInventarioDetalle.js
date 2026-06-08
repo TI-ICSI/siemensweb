@@ -21,27 +21,34 @@ const useInventarioDetalle = () => {
   const [inventario, setInventario] = useState(null);
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // ✅ ACTUALIZADO: usar perfil y estado
   const [filters, setFilters] = useState({
-    tipo: '',
-    estadoFisico: '',
+    perfil: '',
+    estado: '',
     busqueda: ''
   });
 
-  // Función para aplicar filtros - SIN useEffect
+  // ✅ ACTUALIZADO: aplicar filtros con los nuevos campos
   const applyFilters = useCallback((data, currentFilters) => {
     let filtered = [...data];
     
-    if (currentFilters.tipo) {
-      filtered = filtered.filter(eq => eq.tipo === currentFilters.tipo);
+    // Filtro por perfil
+    if (currentFilters.perfil) {
+      filtered = filtered.filter(eq => eq.perfil === currentFilters.perfil);
     }
-    if (currentFilters.estadoFisico) {
-      filtered = filtered.filter(eq => eq.estado === currentFilters.estadoFisico);
+    
+    // Filtro por estado (valor interno)
+    if (currentFilters.estado) {
+      filtered = filtered.filter(eq => eq.estado === currentFilters.estado);
     }
+    
+    // Búsqueda general (serial, perfil, ubicación)
     if (currentFilters.busqueda) {
       const searchTerm = currentFilters.busqueda.toLowerCase();
       filtered = filtered.filter(eq => 
         eq.serial?.toLowerCase().includes(searchTerm) ||
-        eq.tipo?.toLowerCase().includes(searchTerm) ||
+        eq.perfil?.toLowerCase().includes(searchTerm) ||
         eq.ubicacion?.toLowerCase().includes(searchTerm)
       );
     }
@@ -49,7 +56,7 @@ const useInventarioDetalle = () => {
     return filtered;
   }, []);
 
-  // Calcular equipos filtrados usando useMemo (sin efecto)
+  // Calcular equipos filtrados usando useMemo
   const filteredEquipos = useMemo(() => {
     return applyFilters(equipos, filters);
   }, [equipos, filters, applyFilters]);
@@ -117,7 +124,6 @@ const useInventarioDetalle = () => {
       await addDoc(equiposRef, newEquipo);
       await loadEquipos();
       
-      // Actualizar total de equipos en el inventario
       const newTotal = equipos.length + 1;
       const inventarioRef = doc(db, 'inventarios', id);
       await updateDoc(inventarioRef, { totalEquipos: newTotal });
@@ -140,7 +146,6 @@ const useInventarioDetalle = () => {
       let imagenFileName = equipoActual?.imagenFileName || '';
       
       if (nuevaImagenFile) {
-        // Eliminar imagen anterior si existe
         if (imagenFileName) {
           const oldImageRef = ref(storage, imagenFileName);
           await deleteObject(oldImageRef).catch(() => {});
@@ -175,7 +180,6 @@ const useInventarioDetalle = () => {
     try {
       const equipo = equipos.find(e => e.id === equipoId);
       
-      // Eliminar imagen de Storage si existe
       if (equipo?.imagenFileName) {
         const imageRef = ref(storage, equipo.imagenFileName);
         await deleteObject(imageRef).catch(() => {});
@@ -185,7 +189,6 @@ const useInventarioDetalle = () => {
       await deleteDoc(equipoRef);
       await loadEquipos();
       
-      // Actualizar total de equipos en el inventario
       const newTotal = equipos.length - 1;
       const inventarioRef = doc(db, 'inventarios', id);
       await updateDoc(inventarioRef, { totalEquipos: newTotal });
@@ -198,25 +201,18 @@ const useInventarioDetalle = () => {
     }
   }, [id, equipos, loadEquipos]);
 
-  // Obtener tipos únicos para filtros
-  const getUniqueTipos = useCallback(() => {
-    return [...new Set(equipos.map(e => e.tipo))].filter(Boolean);
-  }, [equipos]);
-
-  const getUniqueEstadosFisicos = useCallback(() => {
-    return [...new Set(equipos.map(e => e.estado))].filter(Boolean);
-  }, [equipos]);
+  // ✅ ACTUALIZADO: ya no se usan
+  // getUniqueTipos y getUniqueEstadosFisicos ya no son necesarios
 
   // Resetear filtros
   const resetFilters = useCallback(() => {
     setFilters({
-      tipo: '',
-      estadoFisico: '',
+      perfil: '',
+      estado: '',
       busqueda: ''
     });
   }, []);
 
-  // Cargar datos al iniciar - usando un flag para evitar el warning
   const [initialized, setInitialized] = useState(false);
   
   if (!initialized) {
@@ -236,8 +232,6 @@ const useInventarioDetalle = () => {
     createEquipo,
     updateEquipo,
     deleteEquipo,
-    getUniqueTipos,
-    getUniqueEstadosFisicos,
     reloadEquipos: loadEquipos
   };
 };
