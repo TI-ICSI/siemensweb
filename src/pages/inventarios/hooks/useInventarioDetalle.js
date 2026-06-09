@@ -26,6 +26,7 @@ const useInventarioDetalle = () => {
   const [filters, setFilters] = useState({
     perfil: '',
     estado: '',
+    esquema: '',
     busqueda: ''
   });
 
@@ -41,6 +42,10 @@ const useInventarioDetalle = () => {
     // Filtro por estado (valor interno)
     if (currentFilters.estado) {
       filtered = filtered.filter(eq => eq.estado === currentFilters.estado);
+    }
+
+    if (currentFilters.esquema) {
+      filtered = filtered.filter(eq => eq.esquema === currentFilters.esquema);
     }
     
     // Búsqueda general (serial, perfil, ubicación)
@@ -209,6 +214,7 @@ const useInventarioDetalle = () => {
     setFilters({
       perfil: '',
       estado: '',
+      esquema: '',
       busqueda: ''
     });
   }, []);
