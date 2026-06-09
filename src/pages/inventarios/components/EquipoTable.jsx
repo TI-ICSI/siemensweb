@@ -14,7 +14,7 @@ const EquipoTable = ({ equipos, onEdit, onDelete, onViewImage, loading }) => {
       renovado: 'bg-blue-100 text-blue-800',
       venta: 'bg-yellow-100 text-yellow-800',
       usado_garantia: 'bg-indigo-100 text-indigo-800',
-      usado_sin_garantia: 'bg-gray-100 text-gray-800',
+      usado_sin_garantia: 'bg-fuchsia-100 text-fuchsia-800',
     };
     return colors[estado?.toLowerCase()] || 'bg-gray-100 text-gray-800';
   };
@@ -36,7 +36,7 @@ const EquipoTable = ({ equipos, onEdit, onDelete, onViewImage, loading }) => {
   };
 
   // Colores para perfiles
-  const getPerfilBadge = (perfil) => {
+  {/*const getPerfilBadge = (perfil) => {
     const colors = {
       Standard: 'bg-gray-100 text-gray-800',
       Workstation: 'bg-blue-100 text-blue-800',
@@ -45,7 +45,7 @@ const EquipoTable = ({ equipos, onEdit, onDelete, onViewImage, loading }) => {
       Tower: 'bg-orange-100 text-orange-800',
     };
     return colors[perfil] || 'bg-gray-100 text-gray-800';
-  };
+  };*/}
 
   // Colores para esquemas
   const getEsquemaBadge = (esquema) => {
@@ -122,7 +122,7 @@ const EquipoTable = ({ equipos, onEdit, onDelete, onViewImage, loading }) => {
                 
                 {/* Perfil */}
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getPerfilBadge(eq.perfil)}`}>
+                  <span className="px-2 py-1 text-xs rounded-full" >
                     {eq.perfil || '-'}
                   </span>
                 </td>

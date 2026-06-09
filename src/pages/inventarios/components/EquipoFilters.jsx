@@ -16,6 +16,8 @@ const estados = [
   "Usado Sin Garantía",
 ];
 
+const esquemas = ["CaaS", "Activo Fijo"];
+
 // Mapeo de valores mostrados a valores internos de Firebase
 const estadoMap = {
   "Baja": "baja",
@@ -66,7 +68,7 @@ const EquipoFilters = ({ filters, setFilters, onReset }) => {
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Búsqueda general */}
         <div>
           <label className="block text-sm font-medium text-icsi-titleform mb-2">
@@ -118,6 +120,24 @@ const EquipoFilters = ({ filters, setFilters, onReset }) => {
             ))}
           </select>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-icsi-titleform mb-2">
+            Esquema
+          </label>
+          <select
+            name="esquema"
+            value={filters.esquema || ''}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
+          >
+            <option value="">Todos</option>
+            {esquemas.map(esquema => (
+              <option key={esquema} value={esquema}>{esquema}</option>
+            ))}
+          </select>
+        </div>
+
       </div>
     </div>
   );
