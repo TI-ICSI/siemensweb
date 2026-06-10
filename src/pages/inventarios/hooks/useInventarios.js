@@ -76,6 +76,7 @@ const useInventarios = () => {
         totalEquipos: 0,
         isActive: true,
         status: 'activo',
+        assignedUsers: inventarioData.assignedUsers || [],
         createdBy: auth.currentUser?.uid,
         createdByName: auth.currentUser?.displayName || auth.currentUser?.email,
         createdAt: Timestamp.now(),
@@ -92,15 +93,26 @@ const useInventarios = () => {
   }, [loadInventarios]);
 
   // Actualizar inventario
+  // En updateInventario, permitir actualizar assignedUsers
   const updateInventario = useCallback(async (id, inventarioData) => {
     try {
-      const inventarioRef = doc(db, 'inventarios', id);
-      await updateDoc(inventarioRef, {
+      const updateData = {
         ...inventarioData,
         anio: parseInt(inventarioData.anio),
         updatedAt: Timestamp.now(),
         updatedBy: auth.currentUser?.email
-      });
+      };
+      
+      // Si no se envió assignedUsers, mantener los existentes
+      if (!inventarioData.assignedUsers) {
+        const inventarioRef = doc(db, 'inventarios', id);
+        const inventarioDoc = await getDocs(inventarioRef);
+        if (inventarioDoc.exists()) {
+          updateData.assignedUsers = inventarioDoc.data().assignedUsers || [];
+        }
+      }
+      
+      await updateDoc(doc(db, 'inventarios', id), updateData);
       await loadInventarios();
       return { success: true };
     } catch (error) {
