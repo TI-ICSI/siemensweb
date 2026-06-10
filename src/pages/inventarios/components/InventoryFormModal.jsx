@@ -1,6 +1,9 @@
 // src/pages/inventarios/components/InventoryFormModal.jsx
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import UserSelector from './UserSelector';
+import { auth } from '../../../../firebase/firebaseConfig';
+
 
 // Opciones para los selects
 const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -33,7 +36,8 @@ const getInitialFormData = (inventory) => {
       inmueble: inventory.localidad || '',
       estado: inventory.estado || '',
       ubicacion: inventory.ubicacion || '',
-      status: inventory.status || 'activo'
+      status: inventory.status || 'activo',
+      assignedUsers: inventory.assignedUsers || []  // 👈 NUEVO
     };
   }
   return {
@@ -42,38 +46,54 @@ const getInitialFormData = (inventory) => {
     inmueble: '',
     estado: '',
     ubicacion: '',
-    status: 'activo'
-  };
-};
-
-const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => {
-  const [formData, setFormData] = useState(() => getInitialFormData(inventory));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Construir el objeto solo con los campos que tienen valor
-    const datosParaGuardar = {};
-    
-    // Solo incluir campos que tienen valor (no vacíos)
-    if (formData.anio) datosParaGuardar.anio = formData.anio;
-    if (formData.mes) datosParaGuardar.mes = formData.mes;
-    if (formData.inmueble) datosParaGuardar.localidad = formData.inmueble;
-    if (formData.estado) datosParaGuardar.estado = formData.estado;
-    if (formData.ubicacion !== undefined) datosParaGuardar.ubicacion = formData.ubicacion;
-    if (formData.status) datosParaGuardar.status = formData.status;
-    
-    await onSave(datosParaGuardar);
+    status: 'activo',
+    assignedUsers: []
+    };
   };
 
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+  const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => {
+    const [formData, setFormData] = useState(() => getInitialFormData(inventory));
+
+    const handleUserToggle = (userId) => {
+      setFormData(prev => {
+        const currentUsers = prev.assignedUsers || [];
+        if (currentUsers.includes(userId)) {
+          return { ...prev, assignedUsers: currentUsers.filter(id => id !== userId) };
+        } else {
+          return { ...prev, assignedUsers: [...currentUsers, userId] };
+        }
+      });
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      
+      // Construir el objeto solo con los campos que tienen valor
+      const datosParaGuardar = {};
+      
+      // Solo incluir campos que tienen valor (no vacíos)
+      if (formData.anio) datosParaGuardar.anio = formData.anio;
+      if (formData.mes) datosParaGuardar.mes = formData.mes;
+      if (formData.inmueble) datosParaGuardar.localidad = formData.inmueble;
+      if (formData.estado) datosParaGuardar.estado = formData.estado;
+      if (formData.ubicacion !== undefined) datosParaGuardar.ubicacion = formData.ubicacion;
+      if (formData.status) datosParaGuardar.status = formData.status;
+      if (formData.assignedUsers && formData.assignedUsers.length > 0) {
+        datosParaGuardar.assignedUsers = formData.assignedUsers;
+      }
+      
+      await onSave(datosParaGuardar);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
       
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-icsi-lg shadow-xl max-w-2xl w-full transform transition-all animate-fade-in">
+      <div className="relative bg-white rounded-icsi-lg shadow-xl max-w-2xl w-full transform transition-all animate-fade-in">
           
           {/* Header */}
           <div className="flex justify-between items-center p-6 border-b border-icsi-border">
@@ -166,6 +186,14 @@ const InventoryFormModal = ({ isOpen, onClose, onSave, inventory, loading }) => 
                     <option key={estado} value={estado}>{estado}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <UserSelector
+                  selectedUsers={formData.assignedUsers || []}
+                  onUserToggle={handleUserToggle}
+                  disabled={!!inventory && inventory.createdBy !== auth.currentUser?.uid}
+                />
               </div>
 
               {/* Estado del inventario */}
