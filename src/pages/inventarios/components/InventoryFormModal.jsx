@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import UserSelector from './UserSelector';
-import { auth } from '../../../../firebase/firebaseConfig';
+//import { auth } from '../../../../firebase/firebaseConfig';
 
 
 // Opciones para los selects
@@ -192,7 +192,7 @@ const getInitialFormData = (inventory) => {
                 <UserSelector
                   selectedUsers={formData.assignedUsers || []}
                   onUserToggle={handleUserToggle}
-                  disabled={!!inventory && inventory.createdBy !== auth.currentUser?.uid}
+                  disabled={false}
                 />
               </div>
 

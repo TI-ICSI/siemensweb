@@ -1,5 +1,5 @@
 // src/pages/dashboard/components/RecentInventoryTable.jsx
-import { FaSearch, FaEye, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { FaEye, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const RecentInventoryTable = ({ inventories, onViewDetails }) => {
   // Configuración de colores para el estado (igual que en InventoryTable)
@@ -29,12 +29,7 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
             📋 Inventarios Recientes
           </h3>
           <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-icsi-textLight" />
-            <input
-              type="text"
-              placeholder="Buscar inventario..."
-              className="pl-10 pr-4 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-            />
+
           </div>
         </div>
       </div>
@@ -47,7 +42,7 @@ const RecentInventoryTable = ({ inventories, onViewDetails }) => {
                 Período
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Localidad
+                Inmueble
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
                 Estado
