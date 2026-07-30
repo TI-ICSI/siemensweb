@@ -155,7 +155,6 @@ const EquipoFormModal = ({ isOpen, onClose, onSave, equipo, loading }) => {
                   className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
                   placeholder="Ej: 5CD539HH3R"
                   required
-                  disabled={!!equipo}
                 />
               </div>
 
