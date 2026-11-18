@@ -7,24 +7,38 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
+      },
+      // Se conservan los nombres "icsi-*" para no romper las páginas existentes;
+      // solo cambian los valores a la paleta de S.I.S (la misma de la app).
       colors: {
-        'icsi-primary': '#D91A2A',
-        'icsi-background': '#F2F2F2',
-        'icsi-text': '#73635D',
-        'icsi-border': '#D95F5F',
+        'icsi-primary': '#DC142B',
+        'icsi-hover': '#B8101F',
+        'icsi-background': '#F3F4F6',
+        'icsi-text': '#4B5563',
+        'icsi-border': '#E5E7EB',
         'icsi-white': '#FFFFFF',
-        'icsi-textLight': '#D95F5F',
+        'icsi-textLight': '#9CA3AF',
         'icsi-card': '#FFFFFF',
-        'icsi-titleform': '#494646',
-        'icsi-textPlaceholder': '#7F8C8D',
+        'icsi-titleform': '#1F2937',
+        'icsi-textPlaceholder': '#9CA3AF',
       },
       borderRadius: {
-        'icsi': '0.5rem',
+        'icsi': '0.75rem',
         'icsi-lg': '1rem',
       },
       boxShadow: {
-        'icsi': '0 4px 6px -1px rgba(217, 26, 42, 0.1), 0 2px 4px -1px rgba(217, 26, 42, 0.06)',
-        'icsi-lg': '0 10px 15px -3px rgba(217, 26, 42, 0.1), 0 4px 6px -2px rgba(217, 26, 42, 0.05)',
+        'icsi': '0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04)',
+        'icsi-lg': '0 12px 32px -8px rgba(16, 24, 40, 0.12), 0 4px 8px -4px rgba(16, 24, 40, 0.06)',
       },
     },
   },
