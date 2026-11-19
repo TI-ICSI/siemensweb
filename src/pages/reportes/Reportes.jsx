@@ -2,14 +2,11 @@
 import { useEffect } from 'react';
 import { FaSearch, FaFileExcel } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
-import DashboardHeader from '../dashboard/components/DashboardHeader';
 import InventorySelector from './components/InventorySelector';
 import EquiposTable from './components/EquiposTable';
 import useReportes from './hooks/useReportes';
-import useDashboardData from '../dashboard/hooks/useDashboardData';
 
 const Reportes = () => {
-  const { userName, userEmail } = useDashboardData();
   const {
     inventarios,
     selectedInventarios,
@@ -86,81 +83,77 @@ const Reportes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-icsi-background">
-      <DashboardHeader userName={userName} userEmail={userEmail} />
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-icsi-titleform">
+          Reporte de Equipos
+        </h2>
+        <p className="text-icsi-text mt-1">
+          Selecciona uno o más inventarios para visualizar los equipos
+        </p>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-icsi-titleform">
-            Reporte de Equipos
-          </h2>
-          <p className="text-icsi-text mt-1">
-            Selecciona uno o más inventarios para visualizar los equipos
-          </p>
-        </div>
-
-        {/* Selector de inventarios */}
-        <div className="mb-6">
-          <InventorySelector
-            inventarios={inventarios}
-            selectedInventarios={selectedInventarios}
-            onToggle={toggleInventario}
-            onSelectAll={selectAllInventarios}
-            onClear={clearSelection}
-            loading={loadingInventarios}
-          />
-        </div>
-
-        {/* Barra de búsqueda y botón de exportar */}
-        {selectedInventarios.length > 0 && (
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-icsi-textLight" />
-                <input
-                  type="text"
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  placeholder="Buscar por número de serie..."
-                  className="w-full pl-10 pr-4 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                />
-              </div>
-              <button
-                onClick={exportToExcel}
-                disabled={equipos.length === 0}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-icsi transition-colors ${
-                  equipos.length === 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
-              >
-                <FaFileExcel size={18} />
-                Exportar a Excel ({equipos.length} equipos)
-              </button>
-            </div>
-            
-            {/* Mostrar resumen de inventarios seleccionados */}
-            {selectedInventarios.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-icsi">
-                <p className="text-sm text-blue-700">
-                  <span className="font-semibold">📊 Resumen:</span> {selectedInventarios.length} inventario(s) seleccionado(s)
-                </p>
-                <p className="text-xs text-blue-600 mt-1 truncate">
-                  {getSelectedInventariosNombres()}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tabla de resultados */}
-        <EquiposTable
-          equipos={equipos}
-          loading={loading}
-          selectedCount={selectedInventarios.length}
+      {/* Selector de inventarios */}
+      <div className="mb-6">
+        <InventorySelector
+          inventarios={inventarios}
+          selectedInventarios={selectedInventarios}
+          onToggle={toggleInventario}
+          onSelectAll={selectAllInventarios}
+          onClear={clearSelection}
+          loading={loadingInventarios}
         />
-      </main>
+      </div>
+
+      {/* Barra de búsqueda y botón de exportar */}
+      {selectedInventarios.length > 0 && (
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-icsi-textLight" />
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                placeholder="Buscar por número de serie..."
+                className="w-full pl-10 pr-4 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
+              />
+            </div>
+            <button
+              onClick={exportToExcel}
+              disabled={equipos.length === 0}
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-icsi transition-colors ${
+                equipos.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              <FaFileExcel size={18} />
+              Exportar a Excel ({equipos.length} equipos)
+            </button>
+          </div>
+          
+          {/* Mostrar resumen de inventarios seleccionados */}
+          {selectedInventarios.length > 0 && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-icsi">
+              <p className="text-sm text-blue-700">
+                <span className="font-semibold">📊 Resumen:</span> {selectedInventarios.length} inventario(s) seleccionado(s)
+              </p>
+              <p className="text-xs text-blue-600 mt-1 truncate">
+                {getSelectedInventariosNombres()}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tabla de resultados */}
+      <EquiposTable
+        equipos={equipos}
+        loading={loading}
+        selectedCount={selectedInventarios.length}
+      />
     </div>
   );
 };
