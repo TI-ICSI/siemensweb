@@ -12,7 +12,7 @@ import Personal from './pages/personal/Personal';
 import Perfil from './pages/perfil/Perfil';
 
 function App() {
-  const { user, isAdmin, loading, logout } = useAuth();
+  const { user, isAdmin, loading, logout, updateDisplayName } = useAuth();
   const allowed = !!user && isAdmin;
 
   // Si hay una sesión abierta de alguien que no es admin (por ejemplo, una
@@ -53,7 +53,7 @@ function App() {
               <Route path="/inventario/:id" element={<InventarioDetalle />} />
               <Route path="/reportes" element={<Reportes />} />
               <Route path="/personal" element={<Personal />} />
-              <Route path="/perfil" element={<Perfil />} />
+              <Route path="/perfil" element={<Perfil user={user} onUpdateName={updateDisplayName} />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
