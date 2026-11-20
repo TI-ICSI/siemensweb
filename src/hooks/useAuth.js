@@ -1,8 +1,8 @@
 // src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase/firebaseConfig';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 // Mensajes en español para los errores de inicio de sesión
 const AUTH_ERRORS = {
@@ -103,12 +103,41 @@ const useAuth = () => {
     }
   };
 
+  // Cambia el nombre del usuario en sesión (Firestore + perfil de Auth) y actualiza "user"
+  const updateDisplayName = async (name) => {
+    const clean = (name || '').trim();
+    const current = auth.currentUser;
+    if (!current) return { success: false, error: 'No hay una sesión activa' };
+
+    try {
+      await updateDoc(doc(db, 'users', current.uid), { displayName: clean });
+      try {
+        await updateProfile(current, { displayName: clean });
+      } catch (err) {
+        // El nombre que se usa en el sistema es el de Firestore; esto es secundario
+        console.warn('No se pudo actualizar el perfil de Auth:', err?.code);
+      }
+      setUser((prev) => (prev ? { ...prev, displayName: clean } : prev));
+      return { success: true };
+    } catch (err) {
+      console.error('Error al actualizar el nombre:', err?.code);
+      return {
+        success: false,
+        error:
+          err?.code === 'permission-denied'
+            ? 'No tienes permiso para modificar tu nombre'
+            : 'No se pudo guardar el nombre. Intenta de nuevo',
+      };
+    }
+  };
+
   return {
     user,
     loading,
     error,
     login,
     logout,
+    updateDisplayName,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin'
   };
