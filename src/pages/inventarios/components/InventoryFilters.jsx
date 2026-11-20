@@ -1,100 +1,83 @@
 // src/pages/inventarios/components/InventoryFilters.jsx
-import { FaRedo } from 'react-icons/fa';
+import { FaRedo, FaSearch } from 'react-icons/fa';
 
 const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+const Label = ({ children }) => (
+  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-icsi-textLight">
+    {children}
+  </label>
+);
 
 const InventoryFilters = ({ filters, setFilters, onReset, aniosDisponibles }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleClearFilters = () => {
-    onReset();
-  };
+  const hasFilters = Object.values(filters).some(Boolean);
 
   return (
-    <div className="bg-white border border-icsi-border rounded-icsi-lg p-4 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-icsi-titleform">Filtros de búsqueda</h3>
-        <button
-          onClick={handleClearFilters}
-          className="flex items-center gap-2 text-sm text-icsi-text hover:text-icsi-primary transition-colors"
-        >
-          <FaRedo size={14} />
-          Limpiar filtros
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Filtro por año */}
+    <div className="card mb-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end">
+        {/* Inmueble (búsqueda) */}
         <div>
-          <label className="block text-sm font-medium text-icsi-titleform mb-2">
-            Año
-          </label>
-          <select
-            name="anio"
-            value={filters.anio}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-          >
+          <Label>Inmueble</Label>
+          <div className="relative">
+            <FaSearch size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-icsi-textLight" />
+            <input
+              type="text"
+              name="localidad"
+              value={filters.localidad}
+              onChange={handleChange}
+              placeholder="Buscar por inmueble..."
+              className="input pl-9 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Año */}
+        <div>
+          <Label>Año</Label>
+          <select name="anio" value={filters.anio} onChange={handleChange} className="input text-sm">
             <option value="">Todos</option>
-            {aniosDisponibles.map(anio => (
+            {aniosDisponibles.map((anio) => (
               <option key={anio} value={anio}>{anio}</option>
             ))}
           </select>
         </div>
 
-        {/* Filtro por mes */}
+        {/* Mes */}
         <div>
-          <label className="block text-sm font-medium text-icsi-titleform mb-2">
-            Mes
-          </label>
-          <select
-            name="mes"
-            value={filters.mes}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-          >
+          <Label>Mes</Label>
+          <select name="mes" value={filters.mes} onChange={handleChange} className="input text-sm">
             <option value="">Todos</option>
-            {meses.map(mes => (
+            {meses.map((mes) => (
               <option key={mes} value={mes}>{mes}</option>
             ))}
           </select>
         </div>
 
-        {/* Filtro por localidad */}
+        {/* Estatus (antes decía "Estado", pero filtra por el estatus del inventario) */}
         <div>
-          <label className="block text-sm font-medium text-icsi-titleform mb-2">
-            Inmueble
-          </label>
-          <input
-            type="text"
-            name="localidad"
-            value={filters.localidad}
-            onChange={handleChange}
-            placeholder="Buscar por inmueble..."
-            className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-          />
-        </div>
-
-        {/* Filtro por estado */}
-        <div>
-          <label className="block text-sm font-medium text-icsi-titleform mb-2">
-            Estado
-          </label>
-          <select
-            name="estado"
-            value={filters.estado}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-          >
+          <Label>Estatus</Label>
+          <select name="estado" value={filters.estado} onChange={handleChange} className="input text-sm">
             <option value="">Todos</option>
             <option value="activo">Activo</option>
             <option value="completado">Completado</option>
-            <option value="en_progreso">En Progreso</option>
+            <option value="en_progreso">En progreso</option>
           </select>
         </div>
+
+        {/* Limpiar */}
+        <button
+          onClick={onReset}
+          disabled={!hasFilters}
+          className="btn-secondary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <FaRedo size={12} />
+          Limpiar
+        </button>
       </div>
     </div>
   );
