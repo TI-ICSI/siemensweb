@@ -1,207 +1,109 @@
-// src/pages/inventario/components/EquipoTable.jsx
-import { FaEdit, FaTrash, FaImage } from 'react-icons/fa';
+// src/pages/inventarios/components/EquipoTable.jsx
+import {  FaImage, FaChevronRight } from 'react-icons/fa';
+import { getEstadoInfo, getEsquemaBadge, getThumb } from '../constants/equipo';
+import { EquipoLoading, EquipoEmpty } from './EquipoStates';
 
-const EquipoTable = ({ equipos, onEdit, onDelete, onViewImage, loading }) => {
-  
-  // Colores para los diferentes estados (mapeo de valores internos a display)
-  const getEstadoBadge = (estado) => {
-    const colors = {
-      baja: 'bg-red-100 text-red-800',
-      danado_destruccion: 'bg-red-100 text-red-800',
-      donacion: 'bg-purple-100 text-purple-800',
-      reparacion: 'bg-orange-100 text-orange-800',
-      nuevo: 'bg-green-100 text-green-800',
-      renovado: 'bg-blue-100 text-blue-800',
-      venta: 'bg-yellow-100 text-yellow-800',
-      usado_garantia: 'bg-indigo-100 text-indigo-800',
-      usado_sin_garantia: 'bg-fuchsia-100 text-fuchsia-800',
-    };
-    return colors[estado?.toLowerCase()] || 'bg-gray-100 text-gray-800';
-  };
+const Th = ({ children, className = '' }) => (
+  <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-icsi-textLight ${className}`}>
+    {children}
+  </th>
+);
 
-  // Mostrar texto amigable para el estado
-  const getEstadoTexto = (estado) => {
-    const textos = {
-      baja: 'Baja',
-      danado_destruccion: 'Dañado Destrucción',
-      donacion: 'Donación',
-      reparacion: 'En Reparación',
-      nuevo: 'Nuevo',
-      renovado: 'Renovado',
-      venta: 'Venta',
-      usado_garantia: 'Usado con Garantía',
-      usado_sin_garantia: 'Usado Sin Garantía',
-    };
-    return textos[estado?.toLowerCase()] || estado || '-';
-  };
-
-  // Colores para perfiles
-  {/*const getPerfilBadge = (perfil) => {
-    const colors = {
-      Standard: 'bg-gray-100 text-gray-800',
-      Workstation: 'bg-blue-100 text-blue-800',
-      Ejecutiva: 'bg-purple-100 text-purple-800',
-      Mini: 'bg-green-100 text-green-800',
-      Tower: 'bg-orange-100 text-orange-800',
-    };
-    return colors[perfil] || 'bg-gray-100 text-gray-800';
-  };*/}
-
-  // Colores para esquemas
-  const getEsquemaBadge = (esquema) => {
-    const colors = {
-      'Activo Fijo': 'bg-blue-100 text-blue-800',
-      CaaS: 'bg-green-100 text-green-800',
-    };
-    return colors[esquema] || 'bg-gray-100 text-gray-800';
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white border border-icsi-border rounded-icsi-lg p-8 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-icsi-primary border-t-transparent"></div>
-        <p className="text-icsi-text mt-2">Cargando equipos...</p>
-      </div>
-    );
-  }
-
-  if (equipos.length === 0) {
-    return (
-      <div className="bg-white border border-icsi-border rounded-icsi-lg p-12 text-center">
-        <div className="text-6xl mb-4">💻</div>
-        <h3 className="text-xl font-semibold text-icsi-titleform mb-2">No hay equipos</h3>
-        <p className="text-icsi-text">No se encontraron equipos en este inventario.</p>
-      </div>
-    );
-  }
+// Vista de filas: miniatura pequeña, fila clickeable (abre el detalle)
+const EquipoTable = ({ equipos, onOpen, loading }) => {
+  if (loading) return <EquipoLoading />;
+  if (equipos.length === 0) return <EquipoEmpty />;
 
   return (
-    <div className="bg-white border border-icsi-border rounded-icsi-lg overflow-hidden">
+    <div className="card overflow-hidden !p-0">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1000px]">
-          <thead className="bg-icsi-background">
+        <table className="w-full min-w-[860px]">
+          <thead className="border-b border-icsi-border bg-icsi-background/60">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Serial
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Perfil
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Ubicación
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Estado
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Esquema
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Observaciones
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Nota
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Imagen
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Acciones
-              </th>
+              <Th className="pl-6">Equipo</Th>
+              <Th>Imagen</Th>
+              <Th>Perfil</Th>
+              <Th>Ubicación</Th>
+              <Th>Estado</Th>
+              <Th>Esquema</Th>
+              <Th>Observaciones</Th>
+              <Th className="w-8" />
             </tr>
           </thead>
           <tbody className="divide-y divide-icsi-border">
-            {equipos.map((eq) => (
-              <tr key={eq.id} className="hover:bg-icsi-background/50 transition-colors">
-                {/* Serial */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="text-sm font-mono font-medium text-icsi-titleform">
+            {equipos.map((eq) => {
+              const thumb = getThumb(eq);
+              const estado = getEstadoInfo(eq.estado);
+              return (
+                <tr
+                  key={eq.id}
+                  onClick={() => onOpen(eq)}
+                  onKeyDown={(e) => e.key === 'Enter' && onOpen(eq)}
+                  tabIndex={0}
+                  role="button"
+                  className="group cursor-pointer transition-colors hover:bg-icsi-background/60 focus:bg-icsi-background/60 focus:outline-none"
+                >
+                  <td className="whitespace-nowrap py-2.5 pl-6 pr-4 font-mono text-sm font-semibold text-icsi-titleform">
                     {eq.serial}
-                  </div>
-                </td>
-                
-                {/* Perfil */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className="px-2 py-1 text-xs rounded-full" >
-                    {eq.perfil || '-'}
-                  </span>
-                </td>
-                
-                {/* Ubicación física */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="text-sm text-icsi-text">{eq.ubicacion || '-'}</div>
-                </td>
-                
-                {/* Estado */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getEstadoBadge(eq.estado)}`}>
-                    {getEstadoTexto(eq.estado)}
-                  </span>
-                </td>
-                
-                {/* Esquema */}
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getEsquemaBadge(eq.esquema)}`}>
-                    {eq.esquema || '-'}
-                  </span>
-                </td>
-                
-                {/* Observaciones */}
-                <td className="px-4 py-3">
-                  <div className="text-sm text-icsi-text max-w-[200px] truncate" title={eq.observaciones}>
-                    {eq.observaciones || '-'}
-                  </div>
-                </td>
-                
-                {/* Nota */}
-                <td className="px-4 py-3">
-                  <div className="text-sm text-icsi-text max-w-[200px] truncate" title={eq.nota}>
-                    {eq.nota || '-'}
-                  </div>
-                </td>
-                
-                {/* Imagen */}
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  {eq.imagenUrl && (
-                    <button
-                      onClick={() => onViewImage(eq.imagenUrl)}
-                      className="text-blue-600 hover:text-blue-800 transition-colors"
-                      title="Ver imagen"
-                    >
-                      <FaImage size={18} />
-                    </button>
-                  )}
-                </td>
-                
-                {/* Acciones */}
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => onEdit(eq)}
-                      className="text-yellow-600 hover:text-yellow-800 transition-colors"
-                      title="Editar"
-                    >
-                      <FaEdit size={18} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(eq)}
-                      className="text-red-600 hover:text-red-800 transition-colors"
-                      title="Eliminar"
-                    >
-                      <FaTrash size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+
+                  {/* Miniatura (pequeña, carga diferida) */}
+                  <td className="px-4 py-2.5">
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="h-10 w-14 rounded-md border border-icsi-border bg-icsi-background object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-14 items-center justify-center rounded-md border border-dashed border-icsi-border text-icsi-textLight">
+                        <FaImage size={14} />
+                      </div>
+                    )}
+                  </td>
+
+                  <td className="whitespace-nowrap px-4 py-2.5 text-sm text-icsi-text">{eq.perfil || '—'}</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-sm text-icsi-text">{eq.ubicacion || '—'}</td>
+
+                  <td className="whitespace-nowrap px-4 py-2.5">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${estado.badge}`}>
+                      {estado.label}
+                    </span>
+                  </td>
+
+                  <td className="whitespace-nowrap px-4 py-2.5">
+                    {eq.esquema ? (
+                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getEsquemaBadge(eq.esquema)}`}>
+                        {eq.esquema}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-icsi-textLight">—</span>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-2.5">
+                    <p className="max-w-[200px] truncate text-sm text-icsi-text" title={eq.observaciones}>
+                      {eq.observaciones || '—'}
+                    </p>
+                  </td>
+
+
+                  <td className="pr-4 text-icsi-textLight transition-transform group-hover:translate-x-0.5 group-hover:text-icsi-primary">
+                    <FaChevronRight size={12} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      
-      {/* Footer con total de registros */}
-      <div className="px-4 py-3 border-t border-icsi-border bg-icsi-background">
+
+      <div className="border-t border-icsi-border bg-icsi-background/60 px-6 py-3">
         <p className="text-sm text-icsi-text">
-          Mostrando {equipos.length} equipo(s)
+          Mostrando <span className="font-semibold">{equipos.length}</span>{' '}
+          {equipos.length === 1 ? 'equipo' : 'equipos'}
         </p>
       </div>
     </div>

@@ -206,6 +206,34 @@ const useInventarioDetalle = () => {
     }
   }, [id, equipos, loadEquipos]);
 
+  // Editar los datos del propio inventario
+  const updateInventario = useCallback(async (inventarioData) => {
+    try {
+      await updateDoc(doc(db, 'inventarios', id), {
+        ...inventarioData,
+        anio: parseInt(inventarioData.anio),
+        updatedAt: Timestamp.now(),
+        updatedBy: auth.currentUser?.email
+      });
+      await loadInventario();
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando inventario:', error);
+      return { success: false, error: error.message };
+    }
+  }, [id, loadInventario]);
+
+  // Eliminar el inventario (el mismo comportamiento que tenía la lista)
+  const deleteInventario = useCallback(async () => {
+    try {
+      await deleteDoc(doc(db, 'inventarios', id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error eliminando inventario:', error);
+      return { success: false, error: error.message };
+    }
+  }, [id]);
+
   // ✅ ACTUALIZADO: ya no se usan
   // getUniqueTipos y getUniqueEstadosFisicos ya no son necesarios
 
@@ -238,6 +266,8 @@ const useInventarioDetalle = () => {
     createEquipo,
     updateEquipo,
     deleteEquipo,
+    updateInventario,
+    deleteInventario,
     reloadEquipos: loadEquipos
   };
 };

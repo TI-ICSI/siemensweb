@@ -1,301 +1,245 @@
-// src/pages/inventario/components/EquipoFormModal.jsx
-import { useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+// src/pages/inventarios/components/EquipoFormModal.jsx
+import { useState, useRef, useEffect } from 'react';
+import { FaTimes, FaPlus, FaEdit, FaCamera, FaCloudUploadAlt } from 'react-icons/fa';
+import { PERFILES, ESQUEMAS, ESTADOS, OBSERVACIONES } from '../constants/equipo';
 
-// Opciones para los selects
-const perfiles = ["Standard", "Workstation", "Ejecutiva", "Mini", "Tower"];
+const getInitialFormData = (equipo) => ({
+  serial: equipo?.serial || '',
+  perfil: equipo?.perfil || 'Standard',
+  ubicacion: equipo?.ubicacion || '',
+  // Si el equipo trae un estado que ya no existe en el catálogo, se propone "nuevo"
+  estado: ESTADOS.some((e) => e.value === equipo?.estado) ? equipo.estado : 'nuevo',
+  esquema: equipo?.esquema || 'Activo Fijo',
+  observaciones: equipo?.observaciones || '',
+  nota: equipo?.nota || '',
+});
 
-const estadosMostrados = [
-  "Baja",
-  "Dañado Destrucción",
-  "Donación",
-  "En Reparación",
-  "Nuevo",
-  "Renovado",
-  "Venta",
-  "Usado con Garantía",
-  "Usado Sin Garantía",
-];
-
-// Mapeo de estados mostrados a valores internos (para guardar en Firebase)
-const estadoMap = {
-  "Baja": "baja",
-  "Dañado Destrucción": "danado_destruccion",
-  "Donación": "donacion",
-  "En Reparación": "reparacion",
-  "Nuevo": "nuevo",
-  "Renovado": "renovado",
-  "Venta": "venta",
-  "Usado con Garantía": "usado_garantia",
-  "Usado Sin Garantía": "usado_sin_garantia",
-};
-
-// Mapeo inverso para mostrar el texto correcto al editar
-const estadoInversoMap = {
-  "baja": "Baja",
-  "danado_destruccion": "Dañado Destrucción",
-  "donacion": "Donación",
-  "reparacion": "En Reparación",
-  "nuevo": "Nuevo",
-  "renovado": "Renovado",
-  "venta": "Venta",
-  "usado_garantia": "Usado con Garantía",
-  "usado_sin_garantia": "Usado Sin Garantía",
-};
-
-const esquemas = ["CaaS", "Activo Fijo"];
-
-const observacionesOpciones = [
-  "Etiqueta Dañada",
-  "No carga imagen de Siemens",
-  "No esta en AMTO",
-  "No se puede instalar sistema operativo",
-  "No tiene acciones en myIT",
-  "Obtener Hash",
-  "Sin caja",
-  "Sin Cargador",
-  "Sin Cargador y Sin Caja",
-  "Sin etiqueta",
-  "Sin imagen",
-  "Otro",
-];
-
-// Función para obtener el valor mostrado del estado
-const getEstadoMostrado = (estadoInterno) => {
-  return estadoInversoMap[estadoInterno] || "Nuevo";
-};
-
-// Función para obtener el estado inicial basado en el equipo
-const getInitialFormData = (equipo) => {
-  if (equipo) {
-    return {
-      serial: equipo.serial || '',
-      perfil: equipo.perfil || 'Standard',
-      ubicacion: equipo.ubicacion || '',
-      estado: getEstadoMostrado(equipo.estado),
-      esquema: equipo.esquema || 'Activo Fijo',
-      observaciones: equipo.observaciones || '',
-      nota: equipo.nota || ''
-    };
-  }
-  return {
-    serial: '',
-    perfil: 'Standard',
-    ubicacion: '',
-    estado: 'Nuevo',
-    esquema: 'Activo Fijo',
-    observaciones: '',
-    nota: ''
-  };
-};
+const Label = ({ children }) => (
+  <label className="mb-1.5 block text-sm font-medium text-icsi-titleform">{children}</label>
+);
 
 const EquipoFormModal = ({ isOpen, onClose, onSave, equipo, loading }) => {
-  // Inicializar el estado directamente con los valores del equipo
+  const isEdit = Boolean(equipo);
   const [formData, setFormData] = useState(() => getInitialFormData(equipo));
   const [imagenFile, setImagenFile] = useState(null);
   const [imagenPreview, setImagenPreview] = useState(equipo?.imagenUrl || '');
+  const [dragging, setDragging] = useState(false);
+  const fileInput = useRef(null);
+  const objectUrl = useRef(null); // vista previa local que hay que liberar
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImagenFile(file);
-      setImagenPreview(URL.createObjectURL(file));
-    }
+  // Libera la vista previa local al cerrar el formulario
+  useEffect(
+    () => () => {
+      if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    },
+    [],
+  );
+
+  const set = (field) => (e) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const pickFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    objectUrl.current = URL.createObjectURL(file);
+    setImagenFile(file);
+    setImagenPreview(objectUrl.current);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    pickFile(e.dataTransfer.files?.[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Convertir el estado mostrado a valor interno para guardar
-    const estadoInterno = estadoMap[formData.estado] || "nuevo";
-    
-    const datosParaGuardar = {
-      serial: formData.serial,
-      perfil: formData.perfil,
-      ubicacion: formData.ubicacion,
-      estado: estadoInterno,
-      esquema: formData.esquema,
-      observaciones: formData.observaciones,
-      nota: formData.nota
-    };
-    
-    await onSave(datosParaGuardar, imagenFile);
+    await onSave(
+      {
+        serial: formData.serial,
+        perfil: formData.perfil,
+        ubicacion: formData.ubicacion,
+        estado: formData.estado,
+        esquema: formData.esquema,
+        observaciones: formData.observaciones,
+        nota: formData.nota,
+      },
+      imagenFile,
+    );
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
-      
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-icsi-lg shadow-xl max-w-2xl w-full transform transition-all animate-fade-in">
-          
-          <div className="flex justify-between items-center p-6 border-b border-icsi-border">
-            <h3 className="text-xl font-semibold text-icsi-titleform">
-              {equipo ? '✏️ Editar Equipo' : '➕ Nuevo Equipo'}
-            </h3>
-            <button onClick={onClose} className="text-icsi-textLight hover:text-icsi-primary">
-              <FaTimes size={20} />
+        <div className="relative w-full max-w-4xl overflow-hidden rounded-icsi-lg bg-white shadow-icsi-lg">
+          {/* Encabezado */}
+          <div className="flex items-center justify-between border-b border-icsi-border px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-icsi bg-icsi-primary/10 text-icsi-primary">
+                {isEdit ? <FaEdit size={15} /> : <FaPlus size={15} />}
+              </div>
+              <h3 className="text-lg font-bold text-icsi-titleform">
+                {isEdit ? 'Editar equipo' : 'Agregar equipo'}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-2 text-icsi-textLight transition-colors hover:bg-icsi-background hover:text-icsi-primary"
+              aria-label="Cerrar"
+            >
+              <FaTimes size={18} />
             </button>
           </div>
-          
-          <form onSubmit={handleSubmit} className="p-6 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* Serial - Número de serie */}
+
+          <form onSubmit={handleSubmit}>
+            <div className="grid max-h-[calc(100vh-14rem)] grid-cols-1 gap-6 overflow-y-auto p-6 md:grid-cols-5">
+              {/* Datos (izquierda) */}
+              <div className="space-y-4 md:col-span-3">
+                <div>
+                  <Label>Número de serie *</Label>
+                  <input
+                    type="text"
+                    value={formData.serial}
+                    onChange={(e) => setFormData((p) => ({ ...p, serial: e.target.value.toUpperCase() }))}
+                    className="input font-mono"
+                    placeholder="Ej: CND12708QW"
+                    required
+                    autoFocus={!isEdit}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label>Perfil *</Label>
+                    <select value={formData.perfil} onChange={set('perfil')} className="input" required>
+                      {PERFILES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Ubicación física</Label>
+                    <input
+                      type="text"
+                      value={formData.ubicacion}
+                      onChange={set('ubicacion')}
+                      className="input"
+                      placeholder="Ej: Rack 2 Piso 1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label>Estado *</Label>
+                    <select value={formData.estado} onChange={set('estado')} className="input" required>
+                      {ESTADOS.map((e) => (
+                        <option key={e.value} value={e.value}>{e.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Esquema *</Label>
+                    <select value={formData.esquema} onChange={set('esquema')} className="input" required>
+                      {ESQUEMAS.map((e) => (
+                        <option key={e} value={e}>{e}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Observaciones</Label>
+                  <select value={formData.observaciones} onChange={set('observaciones')} className="input">
+                    <option value="">Seleccionar observación</option>
+                    {OBSERVACIONES.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label>Nota (opcional)</Label>
+                  <textarea
+                    value={formData.nota}
+                    onChange={set('nota')}
+                    rows={3}
+                    className="input resize-none"
+                    placeholder="Notas adicionales sobre el equipo..."
+                  />
+                </div>
+              </div>
+
+              {/* Imagen (derecha) */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Número de serie *
-                </label>
+                <Label>{isEdit ? 'Vista previa de la foto' : 'Imagen del equipo'}</Label>
+
                 <input
-                  type="text"
-                  value={formData.serial}
-                  onChange={(e) => setFormData({...formData, serial: e.target.value.toUpperCase()})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  placeholder="Ej: 5CD539HH3R"
-                  required
-                />
-              </div>
-
-              {/* Perfil */}
-              <div>
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Perfil *
-                </label>
-                <select
-                  value={formData.perfil}
-                  onChange={(e) => setFormData({...formData, perfil: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
-                >
-                  {perfiles.map(perfil => (
-                    <option key={perfil} value={perfil}>{perfil}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ubicación física */}
-              <div>
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Ubicación física
-                </label>
-                <input
-                  type="text"
-                  value={formData.ubicacion}
-                  onChange={(e) => setFormData({...formData, ubicacion: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  placeholder="Ej: RACK 2 PISO 1, Bodega Norte, etc."
-                />
-              </div>
-
-              {/* Estado */}
-              <div>
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Estado *
-                </label>
-                <select
-                  value={formData.estado}
-                  onChange={(e) => setFormData({...formData, estado: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
-                >
-                  {estadosMostrados.map(estado => (
-                    <option key={estado} value={estado}>{estado}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Esquema */}
-              <div>
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Esquema *
-                </label>
-                <select
-                  value={formData.esquema}
-                  onChange={(e) => setFormData({...formData, esquema: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  required
-                >
-                  {esquemas.map(esquema => (
-                    <option key={esquema} value={esquema}>{esquema}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Observaciones - Select con opciones fijas */}
-              <div>
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Observaciones
-                </label>
-                <select
-                  value={formData.observaciones}
-                  onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                >
-                  <option value="">Seleccionar observación</option>
-                  {observacionesOpciones.map(obs => (
-                    <option key={obs} value={obs}>{obs}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Nota - Texto libre */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Nota
-                </label>
-                <textarea
-                  value={formData.nota}
-                  onChange={(e) => setFormData({...formData, nota: e.target.value})}
-                  rows="2"
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi focus:outline-none focus:ring-2 focus:ring-icsi-primary/20 focus:border-icsi-primary"
-                  placeholder="Notas adicionales sobre el equipo..."
-                />
-              </div>
-
-              {/* Imagen */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-icsi-titleform mb-2">
-                  Imagen del equipo
-                </label>
-                <input
+                  ref={fileInput}
                   type="file"
                   accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-3 py-2 border border-icsi-border rounded-icsi"
+                  className="hidden"
+                  onChange={(e) => {
+                    pickFile(e.target.files?.[0]);
+                    e.target.value = '';
+                  }}
                 />
-                {imagenPreview && (
-                  <div className="mt-2">
-                    <img src={imagenPreview} alt="Preview" className="h-32 object-contain rounded" />
-                  </div>
-                )}
+
+                <div
+                  onClick={() => fileInput.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  className={`relative flex aspect-[4/3] w-full cursor-pointer items-center justify-center overflow-hidden rounded-icsi-lg border-2 border-dashed transition-colors ${
+                    dragging
+                      ? 'border-icsi-primary bg-icsi-primary/5'
+                      : 'border-icsi-border bg-icsi-background hover:border-icsi-primary/50'
+                  }`}
+                >
+                  {imagenPreview ? (
+                    <img src={imagenPreview} alt="Vista previa" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="px-4 text-center text-icsi-textLight">
+                      <FaCloudUploadAlt size={34} className="mx-auto mb-2" />
+                      <p className="text-sm font-medium text-icsi-text">Selecciona un archivo</p>
+                      <p className="text-xs">o arrastra una imagen aquí</p>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  className="btn-secondary mt-3 flex w-full items-center justify-center gap-2"
+                >
+                  <FaCamera size={14} />
+                  {imagenPreview ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                </button>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-icsi-border">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-gray-100 text-icsi-text rounded-icsi hover:bg-gray-200"
-              >
+            {/* Acciones */}
+            <div className="flex justify-end gap-3 border-t border-icsi-border bg-icsi-background/60 px-6 py-4">
+              <button type="button" onClick={onClose} className="btn-secondary">
                 Cancelar
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-icsi-primary text-white rounded-icsi hover:bg-icsi-hover disabled:opacity-50 flex items-center gap-2"
-              >
+              <button type="submit" disabled={loading} className="btn-primary">
                 {loading ? (
                   <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Guardando...
                   </>
+                ) : isEdit ? (
+                  'Guardar cambios'
                 ) : (
-                  equipo ? 'Actualizar Equipo' : 'Agregar Equipo'
+                  'Guardar equipo'
                 )}
               </button>
             </div>

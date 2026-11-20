@@ -1,11 +1,10 @@
 // src/pages/inventarios/Inventarios.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaClipboardList, FaDesktop } from 'react-icons/fa';
 import InventoryFilters from './components/InventoryFilters';
 import InventoryTable from './components/InventoryTable';
 import InventoryFormModal from './components/InventoryFormModal';
-import DeleteConfirmModal from './components/DeleteConfirmModal';
 import useInventarios from './hooks/useInventarios';
 
 const Inventarios = () => {
@@ -16,138 +15,99 @@ const Inventarios = () => {
     filters,
     setFilters,
     createInventario,
-    updateInventario,
-    deleteInventario,
     getUniqueAnios,
-    resetFilters
+    resetFilters,
   } = useInventarios();
 
   const [showFormModal, setShowFormModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedInventory, setSelectedInventory] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [modalKey, setModalKey] = useState(0);
 
-
   const handleCreate = () => {
-    setSelectedInventory(null);
-    setModalKey(prev => prev + 1);
+    setModalKey((prev) => prev + 1); // Forzar reset del formulario
     setShowFormModal(true);
-  };
-
-  const handleEdit = (inventory) => {
-    setSelectedInventory(inventory);
-    setModalKey(prev => prev + 1);
-    setShowFormModal(true);
-  };
-
-  const handleDelete = (inventory) => {
-    setSelectedInventory(inventory);
-    setShowDeleteModal(true);
   };
 
   const handleSave = async (formData) => {
     setFormLoading(true);
-    let result;
-    
-    if (selectedInventory) {
-      result = await updateInventario(selectedInventory.id, formData);
-    } else {
-      result = await createInventario(formData);
-    }
-    
+    const result = await createInventario(formData);
     setFormLoading(false);
-    
+
     if (result.success) {
       setShowFormModal(false);
-      setSelectedInventory(null);
     } else {
       alert('Error: ' + result.error);
     }
-  };
-
-  const handleConfirmDelete = async () => {
-    setDeleteLoading(true);
-    const result = await deleteInventario(selectedInventory.id);
-    setDeleteLoading(false);
-    
-    if (result.success) {
-      setShowDeleteModal(false);
-      setSelectedInventory(null);
-    } else {
-      alert('Error: ' + result.error);
-    }
-  };
-
-const handleResetFilters = () => {
-  resetFilters(); // Usar la función del hook en lugar de setFilters manual
-};
-
-  const handleViewDetails = (inventoryId) => {
-    navigate(`/inventario/${inventoryId}`);
   };
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-icsi-titleform">
-            Gestión de Inventarios
-          </h2>
-          <p className="text-icsi-text mt-1">
-            Administra todos los inventarios realizados
-          </p>
+      {/* Encabezado */}
+      <div className="card relative mb-6 overflow-hidden">
+        <div className="absolute inset-y-0 left-0 w-1.5 bg-icsi-primary" />
+
+        <div className="flex flex-wrap items-center justify-between gap-5 pl-2">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-icsi-lg bg-icsi-primary/10 text-icsi-primary">
+              <FaClipboardList size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-icsi-titleform">Inventarios</h2>
+              <p className="mt-1 text-icsi-text">Selecciona un inventario para ver y administrar sus equipos</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-4 rounded-icsi-lg border border-icsi-border px-4 py-2.5">
+              <div>
+                <p className="text-xl font-bold leading-none text-icsi-titleform">{inventarios.length}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-icsi-textLight">
+                  {inventarios.length === 1 ? 'Inventario' : 'Inventarios'}
+                </p>
+              </div>
+              <div className="h-8 w-px bg-icsi-border" />
+              <div className="flex items-center gap-2">
+                <FaDesktop size={14} className="text-icsi-primary" />
+                <div>
+                  <p className="text-xl font-bold leading-none text-icsi-titleform">
+                    {inventarios.reduce((sum, inv) => sum + (Number(inv.totalEquipos) || 0), 0)}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-icsi-textLight">Equipos</p>
+                </div>
+              </div>
+            </div>
+
+            <button onClick={handleCreate} className="btn-primary">
+              <FaPlus size={14} />
+              Nuevo inventario
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-icsi-primary text-white rounded-icsi hover:bg-icsi-hover transition-colors"
-        >
-          <FaPlus size={16} />
-          Nuevo Inventario
-        </button>
       </div>
 
       {/* Filtros */}
       <InventoryFilters
         filters={filters}
         setFilters={setFilters}
-        onReset={handleResetFilters}
+        onReset={resetFilters}
         aniosDisponibles={getUniqueAnios()}
       />
 
-      {/* Tabla */}
+      {/* Tabla (cada fila abre el detalle del inventario) */}
       <InventoryTable
         inventories={inventarios}
-        onViewDetails={handleViewDetails}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onViewDetails={(id) => navigate(`/inventario/${id}`)}
         loading={loading}
       />
 
-      {/* Modales */}
+      {/* Modal de alta */}
       <InventoryFormModal
         key={modalKey}
         isOpen={showFormModal}
-        onClose={() => {
-          setShowFormModal(false);
-          setSelectedInventory(null);
-        }}
+        onClose={() => setShowFormModal(false)}
         onSave={handleSave}
-        inventory={selectedInventory}
+        inventory={null}
         loading={formLoading}
-      />
-
-      <DeleteConfirmModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setSelectedInventory(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        inventoryName={selectedInventory ? `${selectedInventory.anio} - ${selectedInventory.mes} (${selectedInventory.localidad})` : ''}
-        loading={deleteLoading}
       />
     </div>
   );
