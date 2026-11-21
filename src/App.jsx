@@ -52,7 +52,7 @@ function App() {
               <Route path="/inventarios" element={<Inventarios />} />
               <Route path="/inventario/:id" element={<InventarioDetalle />} />
               <Route path="/reportes" element={<Reportes />} />
-              <Route path="/personal" element={<Personal />} />
+              <Route path="/personal" element={<Personal user={user} />} />
               <Route path="/perfil" element={<Perfil user={user} onUpdateName={updateDisplayName} />} />
             </Route>
 
