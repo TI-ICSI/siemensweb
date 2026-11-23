@@ -1,97 +1,105 @@
 // src/pages/reportes/components/EquiposTable.jsx
-import { FaSpinner } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaClipboardList, FaDesktop, FaSearch } from 'react-icons/fa';
 
-const EquiposTable = ({ equipos, loading, selectedCount }) => {
+const PAGE_SIZE = 100;
+
+const Empty = ({ Icon, title, children }) => (
+  <div className="card flex flex-col items-center py-14 text-center">
+    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-icsi-primary/10 text-icsi-primary">
+      <Icon size={24} />
+    </div>
+    <h3 className="font-semibold text-icsi-titleform">{title}</h3>
+    <p className="mt-1 max-w-sm text-sm text-icsi-text">{children}</p>
+  </div>
+);
+
+const Th = ({ children, className = '' }) => (
+  <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-icsi-textLight ${className}`}>
+    {children}
+  </th>
+);
+
+const EquiposTable = ({ equipos, loading, selectedCount, searching = false }) => {
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
   if (loading) {
     return (
-      <div className="bg-white border border-icsi-border rounded-icsi-lg p-12 text-center">
-        <FaSpinner className="animate-spin text-4xl text-icsi-primary mx-auto mb-4" />
-        <p className="text-icsi-text">Cargando equipos...</p>
+      <div className="card py-16 text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-icsi-primary border-t-transparent" />
+        <p className="mt-3 text-icsi-text">Cargando equipos...</p>
       </div>
     );
   }
 
   if (selectedCount === 0) {
     return (
-      <div className="bg-white border border-icsi-border rounded-icsi-lg p-12 text-center">
-        <div className="text-6xl mb-4">📋</div>
-        <h3 className="text-xl font-semibold text-icsi-titleform mb-2">
-          Selecciona inventarios
-        </h3>
-        <p className="text-icsi-text">
-          Selecciona uno o más inventarios para ver los equipos.
-        </p>
-      </div>
+      <Empty Icon={FaClipboardList} title="Selecciona inventarios">
+        Marca uno o más inventarios arriba para ver sus equipos y exportarlos a Excel.
+      </Empty>
     );
   }
 
   if (equipos.length === 0) {
-    return (
-      <div className="bg-white border border-icsi-border rounded-icsi-lg p-12 text-center">
-        <div className="text-6xl mb-4">💻</div>
-        <h3 className="text-xl font-semibold text-icsi-titleform mb-2">
-          No hay equipos
-        </h3>
-        <p className="text-icsi-text">
-          Los inventarios seleccionados no tienen equipos registrados.
-        </p>
-      </div>
+    return searching ? (
+      <Empty Icon={FaSearch} title="Sin resultados">
+        Ningún equipo coincide con ese número de serie.
+      </Empty>
+    ) : (
+      <Empty Icon={FaDesktop} title="No hay equipos">
+        Los inventarios seleccionados no tienen equipos registrados.
+      </Empty>
     );
   }
 
+  const shown = equipos.slice(0, limit);
+
   return (
-    <div className="bg-white border border-icsi-border rounded-icsi-lg overflow-hidden">
-      <div className="px-4 py-3 border-b border-icsi-border bg-icsi-background">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-icsi-titleform">
-            Resultados
-          </h3>
-          <p className="text-sm text-icsi-text">
-            Mostrando {equipos.length} equipo(s)
-          </p>
-        </div>
-      </div>
-      
+    <div className="card !p-0 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-icsi-background">
+        <table className="w-full min-w-[720px]">
+          <thead className="border-b border-icsi-border bg-icsi-background/60">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Número de serie
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Perfil
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-icsi-text uppercase tracking-wider">
-                Ubicación específica
-              </th>
+              <Th className="pl-6">Número de serie</Th>
+              <Th>Perfil</Th>
+              <Th>Ubicación específica</Th>
+              <Th>Inventario</Th>
+              <Th className="pr-6">Localidad</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-icsi-border">
-            {equipos.map((eq) => (
-              <tr key={eq.id} className="hover:bg-icsi-background/50 transition-colors">
-                <td className="px-4 py-3">
-                  <div className="text-sm font-mono font-medium text-icsi-titleform">
-                    {eq.serial}
-                  </div>
-                  <div className="text-xs text-icsi-textLight mt-0.5">
-                    📁 {eq.inventarioNombre}
-                  </div>
+            {shown.map((eq) => (
+              <tr key={`${eq.inventarioId}-${eq.id}`} className="transition-colors hover:bg-icsi-background/60">
+                <td className="whitespace-nowrap py-3 pl-6 pr-4 font-mono text-sm font-semibold text-icsi-titleform">
+                  {eq.serial}
                 </td>
-                <td className="px-4 py-3">
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                    {eq.perfil || '-'}
+                <td className="whitespace-nowrap px-4 py-3">
+                  <span className="inline-flex rounded-full bg-icsi-background px-2.5 py-1 text-xs font-medium text-icsi-text">
+                    {eq.perfil || '—'}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="text-sm text-icsi-text">
-                    {eq.ubicacion || '-'}
-                  </div>
-                </td>
+                <td className="px-4 py-3 text-sm text-icsi-text">{eq.ubicacion || '—'}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-icsi-text">{eq.inventarioNombre}</td>
+                <td className="whitespace-nowrap py-3 pl-4 pr-6 text-sm text-icsi-text">{eq.inventarioLocalidad || '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-icsi-border bg-icsi-background/60 px-6 py-3">
+        <p className="text-sm text-icsi-text">
+          Mostrando <span className="font-semibold">{shown.length}</span> de{' '}
+          <span className="font-semibold">{equipos.length}</span> equipos
+        </p>
+        {shown.length < equipos.length && (
+          <button
+            onClick={() => setLimit((l) => l + PAGE_SIZE)}
+            className="btn-secondary !px-3 !py-1.5 text-sm"
+          >
+            Mostrar {Math.min(PAGE_SIZE, equipos.length - shown.length)} más
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 // src/pages/reportes/hooks/useReportes.js
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { db } from '../../../../firebase/firebaseConfig';
-import { 
-  collection, 
-  getDocs, 
-  query, 
+import {
+  collection,
+  getDocs,
+  query,
   orderBy,
   doc,
   getDoc
@@ -16,6 +16,11 @@ const useReportes = () => {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingInventarios, setLoadingInventarios] = useState(true);
+  const [filters, setFilters] = useState({ search: '' });
+
+  // Cada carga lleva un número: si la selección cambia mientras se carga,
+  // el resultado viejo se descarta y no pisa al nuevo.
+  const requestId = useRef(0);
 
   // Cargar lista de inventarios disponibles
   const loadInventarios = useCallback(async () => {
@@ -36,61 +41,59 @@ const useReportes = () => {
     }
   }, []);
 
-  // Cargar equipos de los inventarios seleccionados
+  // Cargar equipos de los inventarios seleccionados (en paralelo)
   const loadEquiposFromInventarios = useCallback(async (inventarioIds) => {
+    const current = ++requestId.current;
+
     if (!inventarioIds || inventarioIds.length === 0) {
       setEquipos([]);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      const allEquipos = [];
-      
-      for (const inventarioId of inventarioIds) {
-        // Obtener información del inventario
-        const inventarioRef = doc(db, 'inventarios', inventarioId);
-        const inventarioDoc = await getDoc(inventarioRef);
-        const inventarioData = inventarioDoc.data();
-        
-        // Obtener equipos del inventario
-        const equiposRef = collection(db, `inventarios/${inventarioId}/equipos`);
-        const snapshot = await getDocs(equiposRef);
-        
-        const equiposData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          inventarioId: inventarioId,
-          inventarioNombre: `${inventarioData?.anio || ''} - ${inventarioData?.mes || ''} (${inventarioData?.localidad || ''})`,
-          inventarioLocalidad: inventarioData?.localidad || '',
-          inventarioEstado: inventarioData?.estado || ''
-        }));
-        
-        allEquipos.push(...equiposData);
-      }
-      
-      setEquipos(allEquipos);
+      const groups = await Promise.all(
+        inventarioIds.map(async (inventarioId) => {
+          const inventarioDoc = await getDoc(doc(db, 'inventarios', inventarioId));
+          const inventarioData = inventarioDoc.data();
+
+          const snapshot = await getDocs(collection(db, `inventarios/${inventarioId}/equipos`));
+
+          return snapshot.docs.map(equipoDoc => ({
+            id: equipoDoc.id,
+            ...equipoDoc.data(),
+            inventarioId: inventarioId,
+            inventarioNombre: `${inventarioData?.anio || ''} - ${inventarioData?.mes || ''} (${inventarioData?.localidad || ''})`,
+            inventarioLocalidad: inventarioData?.localidad || '',
+            inventarioEstado: inventarioData?.estado || ''
+          }));
+        })
+      );
+
+      if (current !== requestId.current) return; // llegó tarde: ya hay otra carga
+      setEquipos(groups.flat());
     } catch (error) {
       console.error('Error cargando equipos:', error);
     } finally {
-      setLoading(false);
+      if (current === requestId.current) setLoading(false);
     }
   }, []);
 
   // Seleccionar/Deseleccionar inventario
   const toggleInventario = useCallback((inventarioId) => {
-    setSelectedInventarios(prev => {
-      if (prev.includes(inventarioId)) {
-        return prev.filter(id => id !== inventarioId);
-      } else {
-        return [...prev, inventarioId];
-      }
-    });
+    setSelectedInventarios(prev => (
+      prev.includes(inventarioId)
+        ? prev.filter(id => id !== inventarioId)
+        : [...prev, inventarioId]
+    ));
   }, []);
 
-  // Seleccionar todos los inventarios
-  const selectAllInventarios = useCallback(() => {
-    setSelectedInventarios(inventarios.map(inv => inv.id));
+  // Seleccionar varios: los ids que se pasen (por ejemplo, los que deja el filtro)
+  // o, sin argumentos, todos. Se suman a lo que ya estaba seleccionado.
+  const selectAllInventarios = useCallback((ids) => {
+    const toAdd = Array.isArray(ids) ? ids : inventarios.map(inv => inv.id);
+    setSelectedInventarios(prev => [...new Set([...prev, ...toAdd])]);
   }, [inventarios]);
 
   // Limpiar selección
@@ -98,11 +101,6 @@ const useReportes = () => {
     setSelectedInventarios([]);
     setEquipos([]);
   }, []);
-
-  // Aplicar filtros a los equipos (si se necesitan)
-  const [filters, setFilters] = useState({
-    search: ''
-  });
 
   const filteredEquipos = equipos.filter(eq => {
     if (filters.search) {
