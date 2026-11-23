@@ -69,9 +69,10 @@ const AppLayout = ({ user, onLogout }) => {
 
           <div className="min-w-0 leading-tight">
             <h1 className="truncate text-base font-bold text-icsi-titleform sm:text-lg">
-              S.I.S
               <span className="ml-2 hidden font-medium text-icsi-text sm:inline">
-                Sistema de Inventarios Siemens
+                <span className="font-bold text-icsi-primary">S</span>istema de{' '}
+                <span className="font-bold text-icsi-primary">I</span>nventarios{' '}
+                <span className="font-bold text-icsi-primary">S</span>iemens
               </span>
             </h1>
             <p className="hidden text-xs text-icsi-textLight sm:block">Panel de administración</p>
