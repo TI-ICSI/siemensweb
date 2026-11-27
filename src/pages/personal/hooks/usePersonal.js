@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../../../../firebase/firebaseConfig';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth, db, functions } from '../../../../firebase/firebaseConfig';
 
 // Acepta "role" (v2) o "rol" (v1); lo desconocido queda como "user"
 const normalizeRole = (raw) => {
@@ -44,6 +45,23 @@ const call = async (name, data) => {
   } catch (error) {
     console.error(`Error en ${name}:`, error?.code, error?.message);
     return { success: false, error: friendlyError(error) };
+  }
+};
+
+const RESET_ERRORS = {
+  'auth/invalid-email': 'El correo de esta cuenta no es válido',
+  'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos e intenta de nuevo',
+  'auth/network-request-failed': 'No se pudo conectar. Revisa tu internet e intenta de nuevo',
+};
+
+// Envía el correo de Firebase para que la persona elija una contraseña nueva
+const sendPasswordReset = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (error) {
+    console.error('Error al enviar correo de restablecimiento:', error?.code);
+    return { success: false, error: RESET_ERRORS[error?.code] || 'No se pudo enviar el correo. Intenta de nuevo' };
   }
 };
 
@@ -96,6 +114,7 @@ const usePersonal = () => {
     createUser: (data) => withReload(call('invicoCreateUser', data)),
     setUserRole: (uid, role) => withReload(call('invicoSetUserRole', { uid, role })),
     setUserActive: (uid, active) => withReload(call('invicoSetUserActive', { uid, active })),
+    sendPasswordReset,
   };
 };
 
