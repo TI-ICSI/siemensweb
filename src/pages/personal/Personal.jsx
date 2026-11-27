@@ -17,6 +17,7 @@ import UsersTable from './components/UsersTable';
 import UserCreateModal from './components/UserCreateModal';
 import UserRoleModal from './components/UserRoleModal';
 import UserActiveModal from './components/UserActiveModal';
+import UserPasswordModal from './components/UserPasswordModal';
 import { ROLE_OPTIONS } from './constants/roles';
 
 const EMPTY_FILTERS = { busqueda: '', role: '', status: '' };
@@ -40,13 +41,14 @@ const Label = ({ children }) => (
 );
 
 const Personal = ({ user }) => {
-  const { users, loading, loadError, reload, createUser, setUserRole, setUserActive } = usePersonal();
+  const { users, loading, loadError, reload, createUser, setUserRole, setUserActive, sendPasswordReset } = usePersonal();
 
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [createOpen, setCreateOpen] = useState(false);
   const [createKey, setCreateKey] = useState(0);
   const [roleTarget, setRoleTarget] = useState(null);
   const [activeTarget, setActiveTarget] = useState(null);
+  const [passTarget, setPassTarget] = useState(null);
   const [notice, setNotice] = useState(null); // { type: 'success' | 'error', text }
 
   // El aviso se quita solo
@@ -106,6 +108,18 @@ const Personal = ({ user }) => {
     if (result.success) {
       setActiveTarget(null);
       setNotice({ type: 'success', text: active ? 'Cuenta reactivada.' : 'Cuenta desactivada.' });
+    }
+    return result;
+  };
+
+  const handleResetPassword = async (target) => {
+    const result = await sendPasswordReset(target.email);
+    if (result.success) {
+      setPassTarget(null);
+      setNotice({
+        type: 'success',
+        text: `Se envió el correo de restablecimiento a ${target.email}. Debe abrirlo y elegir su nueva contraseña (revisar también spam).`,
+      });
     }
     return result;
   };
@@ -224,6 +238,7 @@ const Personal = ({ user }) => {
           loading={loading}
           onChangeRole={setRoleTarget}
           onToggleActive={setActiveTarget}
+          onResetPassword={setPassTarget}
         />
       )}
 
@@ -242,6 +257,13 @@ const Personal = ({ user }) => {
         user={activeTarget}
         onClose={() => setActiveTarget(null)}
         onConfirm={handleSetActive}
+      />
+      <UserPasswordModal
+        key={`pass-${passTarget?.uid}`}
+        isOpen={Boolean(passTarget)}
+        user={passTarget}
+        onClose={() => setPassTarget(null)}
+        onConfirm={handleResetPassword}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 // src/pages/personal/components/UsersTable.jsx
-import { FaUserTag, FaUserSlash, FaUserCheck, FaUsers } from 'react-icons/fa';
+import { FaUserTag, FaUserSlash, FaUserCheck, FaUsers, FaKey } from 'react-icons/fa';
 import { getRole } from '../constants/roles';
 
 const formatDate = (date) =>
@@ -11,7 +11,7 @@ const Th = ({ children, className = '' }) => (
   </th>
 );
 
-const UsersTable = ({ users, currentUid, loading, onChangeRole, onToggleActive }) => {
+const UsersTable = ({ users, currentUid, loading, onChangeRole, onToggleActive, onResetPassword }) => {
   if (loading) {
     return (
       <div className="card py-16 text-center">
@@ -103,6 +103,20 @@ const UsersTable = ({ users, currentUid, loading, onChangeRole, onToggleActive }
                         title={isSelf ? 'No puedes cambiar tu propio rol' : 'Cambiar rol'}
                       >
                         <FaUserTag size={15} />
+                      </button>
+                      <button
+                        onClick={() => onResetPassword(u)}
+                        disabled={isSelf || !u.email}
+                        className="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+                        title={
+                          isSelf
+                            ? 'Cambia tu contraseña desde tu perfil'
+                            : u.email
+                              ? 'Restablecer contraseña'
+                              : 'Esta cuenta no tiene correo'
+                        }
+                      >
+                        <FaKey size={14} />
                       </button>
                       <button
                         onClick={() => onToggleActive(u)}
